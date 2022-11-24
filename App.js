@@ -1,20 +1,40 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react'
+import { Text, View } from 'react-native'
+import * as SplashScreen from 'expo-splash-screen'
+import * as Font from 'expo-font'
+import { AppNavigation } from './src/navigation/AppNavigation'
+SplashScreen.preventAutoHideAsync()
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+	const [appIsReady, setAppIsReady] = useState(false)
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+	useEffect(() => {
+		async function prepare() {
+			try {
+				await Font.loadAsync({
+					'open-sans-regular': require('./assets/fonts/OpenSans-Regular.ttf'),
+					'open-sans-bold': require('./assets/fonts/OpenSans-Bold.ttf'),
+				})
+				await new Promise((resolve) => setTimeout(resolve, 2000))
+			} catch (e) {
+				console.warn(e)
+			} finally {
+				setAppIsReady(true)
+			}
+		}
+
+		prepare()
+	}, [])
+
+	const onLayoutRootView = useCallback(async () => {
+		if (appIsReady) {
+			await SplashScreen.hideAsync()
+		}
+	}, [appIsReady])
+
+	if (!appIsReady) {
+		return null
+	}
+
+	return <AppNavigation onLayout={onLayoutRootView} />
+}
